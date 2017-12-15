@@ -105,3 +105,19 @@ ifndef SIZE
 	@false;
 endif
 
+reqs-prod:
+	./scripts/build_virtual_env.sh --deploy --rebuild
+
+reqs:
+	./scripts/build_virtual_env.sh
+
+quickstart: reqs
+
+lambda-package: reqs-prod
+	rm -rf build
+	rm -rf build.zip
+	mkdir build
+	cp -r src/DynamoToES/* build/.
+	cp -r .virtualenv/lib/python3.5/site-packages/* build/.
+	cd build && zip ../build.zip -r .
+	rm -rf build

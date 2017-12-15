@@ -10,7 +10,7 @@ from requests_aws4auth import AWS4Auth
 reserved_fields = [ "uid", "_id", "_type", "_source", "_all", "_parent", "_fieldnames", "_routing", "_index", "_size", "_timestamp", "_ttl"]
 
 
-ELASTIC_SEARCH_ENDPOINT = os.environ("ELASTIC_SEARCH_ENDPOINT")
+ELASTIC_SEARCH_ENDPOINT = os.environ.get("ELASTIC_SEARCH_ENDPOINT")
 
 
 # Process DynamoDB Stream records and insert the object in ElasticSearch
