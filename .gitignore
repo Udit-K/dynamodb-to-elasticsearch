@@ -56,6 +56,7 @@ docs/_build/
 target/
 
 # VirtualEnv
+.virtualenv*
 venv/
 .env
 dev_es_creds
