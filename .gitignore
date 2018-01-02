@@ -1,5 +1,9 @@
 # Created by https://www.gitignore.io/api/python
 
+
+### BUILD ###
+build.zip
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -56,6 +60,7 @@ docs/_build/
 target/
 
 # VirtualEnv
+.virtualenv*
 venv/
 .env
 dev_es_creds

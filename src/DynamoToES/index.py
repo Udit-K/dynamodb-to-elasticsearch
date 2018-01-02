@@ -1,13 +1,16 @@
 from __future__ import print_function
 
+import os
 import json
 import re
 import boto3
-from lib import env
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
 reserved_fields = [ "uid", "_id", "_type", "_source", "_all", "_parent", "_fieldnames", "_routing", "_index", "_size", "_timestamp", "_ttl"]
+
+
+ELASTIC_SEARCH_ENDPOINT = os.environ.get("ELASTIC_SEARCH_ENDPOINT")
 
 
 # Process DynamoDB Stream records and insert the object in ElasticSearch
@@ -29,7 +32,7 @@ def lambda_handler(event, context):
 
     # Connect to ES
     es = Elasticsearch(
-        [env.ES_ENDPOINT],
+        [ELASTIC_SEARCH_ENDPOINT],
         http_auth=awsauth,
         use_ssl=True,
         verify_certs=True,
