@@ -11,7 +11,15 @@ reserved_fields = [ "uid", "_id", "_type", "_source", "_all", "_parent", "_field
 
 
 ELASTIC_SEARCH_ENDPOINT = os.environ.get("ELASTIC_SEARCH_ENDPOINT")
+ES_DOC_TYPE = os.environ.get("ES_INDEX_DOC_TYPE", "doc")
 
+# This is a string that will have `.format()` called against it
+# with the dict containing the keys mapping to from Dynamo table's keys
+# For example, if you have keys "organization_id" and "group_id", you can
+# format your ID as 'organization_id|group_id' with:
+#   ES_INDEX_DOC_TYPE = "{organization_id}|{group_id}"
+# Using key names that are not present in the dict will raise a KeyError
+ES_DOCUMENT_ID_TEMPLATE = os.environ.get("ES_DOCUMENT_ID_TEMPLATE", "")
 
 # Process DynamoDB Stream records and insert the object in ElasticSearch
 # Use the Table name as index and doc_type name
@@ -20,7 +28,6 @@ ELASTIC_SEARCH_ENDPOINT = os.environ.get("ELASTIC_SEARCH_ENDPOINT")
 # Properly unmarshal DynamoDB JSON types. Binary NOT tested.
 
 def lambda_handler(event, context):
-
     session = boto3.session.Session()
     credentials = session.get_credentials()
 
@@ -44,9 +51,10 @@ def lambda_handler(event, context):
 
     # Loop over the DynamoDB Stream records
     for record in event['Records']:
-        
         try:
-            
+            if not ES_DOCUMENT_ID_TEMPLATE:
+                raise Exception("No Elasticsearch document ID template specified")
+
             if record['eventName'] == "INSERT":
                 insert_document(es, record)
             elif record['eventName'] == "REMOVE":
@@ -80,7 +88,7 @@ def modify_document(es, record):
     es.index(index=table,
              body=doc,
              id=docId,
-             doc_type=table,
+             doc_type=ES_DOC_TYPE,
              refresh=True)
             
     print("Success - Updated index ID: " + docId)
@@ -95,7 +103,7 @@ def remove_document(es, record):
     
     es.delete(index=table,
               id=docId,
-              doc_type=table,
+              doc_type=ES_DOC_TYPE,
               refresh=True)
     
     print("Successly removed")
@@ -124,7 +132,7 @@ def insert_document(es, record):
     es.index(index=table,
              body=doc,
              id=newId,
-             doc_type=table,
+             doc_type=ES_DOC_TYPE,
              refresh=True)
             
     print("Success - New Index ID: " + newId)
@@ -140,17 +148,18 @@ def getTable(record):
 # Generate the ID for ES. Used for deleting or updating item later
 def generateId(record):
     keys = unmarshalJson(record['dynamodb']['Keys'])
-    
-    # Concat HASH and RANGE key with | in between
-    newId = ""
-    i = 0
-    for key, value in keys.items():
-        if (i > 0):
-            newId += "|"
-        newId += str(value)
-        i += 1
-        
-    return newId
+    return ES_DOCUMENT_ID_TEMPLATE.format(**keys)
+
+    # # Concat HASH and RANGE key with | in between
+    # newId = ""
+    # i = 0
+    # for key, value in keys.items():
+    #     if (i > 0):
+    #         newId += "|"
+    #     newId += str(value)
+    #     i += 1
+    #
+    # return newId
 
 # Unmarshal a JSON that is DynamoDB formatted
 def unmarshalJson(node):
