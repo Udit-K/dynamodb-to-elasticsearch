@@ -66,3 +66,4 @@ venv/
 dev_es_creds
 lib/env.py
 
+node_modules

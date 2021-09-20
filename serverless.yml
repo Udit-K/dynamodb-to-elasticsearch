@@ -1,0 +1,98 @@
+service: dynamodb-to-elasticsearch
+
+plugins:
+  - serverless-attach-managed-policy
+  - serverless-python-requirements
+  - serverless-hooks
+provider:
+  name: aws
+  runtime: python3.6
+  stage: ${opt:stage, 'dev'}
+  region: us-west-2
+  deploymentBucket: ${self:custom.deploymentBucketVariable.${self:provider.stage}}
+
+  tags:
+    EngTeam: Platform-Integration
+    Environment: ${self:provider.stage}
+    GitRepo: 'hearsaycorp/dynamodb-to-elasticsearch'
+    ServiceName: ${self:service}
+  environment:
+    ENV: ${self:provider.stage}
+    SENTRY_DSN: ${self:custom.sentry.dsn}
+    SENTRY_ENVIRONMENT: ${opt:stage, self:provider.stage}
+
+custom:
+  sentry:
+    dsn: ${self:custom.sentry_dsns.${self:provider.stage}}
+  sentry_dsns:
+    dev: https://905bad4fc7e148cdb08ad3ab493093f0@o32711.ingest.sentry.io/76042
+    prod: https://69f9daba4c7b49619c31c889047956eb@o32711.ingest.sentry.io/5954567
+  deploymentBucketVariable:
+    dev: hsl-dev-us-west-2-serverless
+    staging: hsl-prod-us-west-2-serverless
+    prod: hsl-prod-us-west-2-serverless
+  vpc:
+    dev:
+      securityGroupIds:
+        - sg-07b1952c3b13092fa
+        - sg-0616e9d182ee488f3
+        - sg-0236ab7b2e3453700
+      subnetIds:
+        - subnet-afd4f8e6
+        - subnet-41392c26
+        - subnet-71dc742a
+    staging:
+      securityGroupIds:
+        sg-064c80d705439e0cb
+      subnetIds:
+        - subnet-e095b5a6
+        - subnet-31a12b59
+        - subnet-86e7f8ee
+    prod:
+      securityGroupIds:
+        sg-0af9af9a2dcea0279
+      subnetIds:
+        - subnet-e095b5a6
+        - subnet-31a12b59
+        - subnet-86e7f8ee
+
+resources:
+  Resources:
+    IamRoleLambdaExecution:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument: # OVERWRITE assume role policy, rest is populated by serverless
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+                  - apigateway.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+          - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+          
+
+
+
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
+  include:
+    - "**"
+
+
+functions:
+  authorize-request:
+    name: ${self:service}-${self:provider.stage}
+    description: authorize API request
+    handler: handler.handler
+    memorySize: 4096
+    timeout: 900
+    # environment:
+    #   DYNAMODB_TO_ELASTICSEARCH_HOSTNAME: ${self:custom.dynamodb-to-elasticsearch.hostname.${self:provider.stage}}
+    vpc: ${self:custom.vpc.${self:provider.stage}}

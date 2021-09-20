@@ -1,0 +1,1 @@
+{"name":"dynamodb-to-elasticsearch","description":"","version":"0.1.0","devDependencies":{"serverless":"^2.59.0","serverless-attach-managed-policy":"^0.0.7","serverless-hooks":"^1.0.0","serverless-python-requirements":"^5.1.1"}}

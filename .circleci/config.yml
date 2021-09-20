@@ -1,0 +1,89 @@
+version: 2
+workflows:
+  version: 2
+  continuous-delivery:
+    jobs:
+      - test-3.8
+      - deploy-dev:
+          context: aws-dev
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - test-3.8
+      - lgtm:
+          filters:
+            branches:
+              only:
+                - main
+          type: approval
+          requires:
+            - deploy-dev
+      - deploy-prod:
+          context: aws-prod
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - lgtm
+jobs:
+  test-3.8:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: |
+            sudo pip3 install 'poetry==1.1.7'
+            poetry config http-basic.hss-pypi hsl-readonly Vg8VRXw7a6TZbGBcMBbw
+            poetry install
+      - run:
+          name: run tests
+          command: |
+            poetry run pytest
+  deploy-dev:
+    docker:
+      - image: circleci/python:3.8-node
+    steps:
+      - checkout
+      - run:
+          name: install serverless dependencies & set credentials
+          command: |
+            sudo npm install -g serverless
+            npm install
+            serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile hearsaydev
+      - run:
+          name: install poetry
+          command: |
+           sudo pip3 install 'poetry==1.1.7'
+           poetry config http-basic.hss-pypi hsl-readonly Vg8VRXw7a6TZbGBcMBbw
+           poetry install
+      - run:
+          name: deploy to dev
+          command: |
+            sls deploy --stage dev
+  deploy-prod:
+    docker:
+      - image: circleci/python:3.8-node
+    steps:
+      - checkout
+      - run:
+          name: install serverless dependencies & set credentials
+          command: |
+            sudo npm install -g serverless
+            npm install
+            serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile hearsayprod
+      - run:
+          name: install poetry
+          command: |
+            sudo pip3 install 'poetry==1.1.7'
+            poetry config http-basic.hss-pypi hsl-readonly Vg8VRXw7a6TZbGBcMBbw
+            poetry install
+      - run:
+          name: deploy to prod
+          command: |
+            sls deploy --stage prod
+
