@@ -96,3 +96,12 @@ functions:
     # environment:
     #   DYNAMODB_TO_ELASTICSEARCH_HOSTNAME: ${self:custom.dynamodb-to-elasticsearch.hostname.${self:provider.stage}}
     vpc: ${self:custom.vpc.${self:provider.stage}}
+    events:
+      - stream:
+         arn: arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889
+         batchsize: 100
+         enabled: true
+         startingPosition: TRIM_HORIZON
+         parallelizationFactor: 1
+         maximumRecordAgeInSeconds: 60
+         bisectBatchOnFunctionError: false

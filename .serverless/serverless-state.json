@@ -87,6 +87,18 @@
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/dynamodb-to-elasticsearch-dev*:*:*"
                           }
                         ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "dynamodb:GetRecords",
+                          "dynamodb:GetShardIterator",
+                          "dynamodb:DescribeStream",
+                          "dynamodb:ListStreams"
+                        ],
+                        "Resource": [
+                          "arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889"
+                        ]
                       }
                     ]
                   }
@@ -118,7 +130,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "hsl-dev-us-west-2-serverless",
-                "S3Key": "serverless/dynamodb-to-elasticsearch/dev/1631918314394-2021-09-17T22:38:34.394Z/dynamodb-to-elasticsearch.zip"
+                "S3Key": "serverless/dynamodb-to-elasticsearch/dev/1632163904817-2021-09-20T18:51:44.817Z/dynamodb-to-elasticsearch.zip"
               },
               "Handler": "handler.handler",
               "Runtime": "python3.6",
@@ -174,15 +186,36 @@
               "AuthorizeDashrequestLogGroup"
             ]
           },
-          "AuthorizeDashrequestLambdaVersionckerfTGlcZfLamOOZnvLkhBwyzB4Esj4nPNTQnSA5s": {
+          "AuthorizeDashrequestLambdaVersionBtJrevz6dLJva8LErL6fFlRAkS1xXAeGy034f6ssw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AuthorizeDashrequestLambdaFunction"
               },
-              "CodeSha256": "3LwBcUl2KTqsHyjRPaQKxA++lKDx08QzwOp/snDSHCY=",
+              "CodeSha256": "p4JpuyyzllbYmAmlS0zuxrxWWrtYyQBMQzWUECVMIuc=",
               "Description": "authorize API request"
+            }
+          },
+          "AuthorizeDashrequestEventSourceMappingDynamodbPnwdevhelmgroupsearch": {
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "DependsOn": [
+              "IamRoleLambdaExecution"
+            ],
+            "Properties": {
+              "BatchSize": 10,
+              "ParallelizationFactor": 1,
+              "EventSourceArn": "arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889",
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AuthorizeDashrequestLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "StartingPosition": "TRIM_HORIZON",
+              "Enabled": true,
+              "BisectBatchOnFunctionError": false,
+              "MaximumRecordAgeInSeconds": 60
             }
           }
         },
@@ -196,7 +229,7 @@
           "AuthorizeDashrequestLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AuthorizeDashrequestLambdaVersionckerfTGlcZfLamOOZnvLkhBwyzB4Esj4nPNTQnSA5s"
+              "Ref": "AuthorizeDashrequestLambdaVersionBtJrevz6dLJva8LErL6fFlRAkS1xXAeGy034f6ssw"
             },
             "Export": {
               "Name": "sls-dynamodb-to-elasticsearch-dev-AuthorizeDashrequestLambdaFunctionQualifiedArn"
@@ -271,11 +304,23 @@
             "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"AuthorizeDashrequestLambdaFunction\"][\"Properties\"][\"VpcConfig\"][\"SubnetIds\"]"
           }
         },
-        "events": [],
+        "events": [
+          {
+            "stream": {
+              "arn": "arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889",
+              "batchsize": 100,
+              "enabled": true,
+              "startingPosition": "TRIM_HORIZON",
+              "parallelizationFactor": 1,
+              "maximumRecordAgeInSeconds": 60,
+              "bisectBatchOnFunctionError": false
+            }
+          }
+        ],
         "package": {},
         "memory": 4096,
         "runtime": "python3.6",
-        "versionLogicalId": "AuthorizeDashrequestLambdaVersionckerfTGlcZfLamOOZnvLkhBwyzB4Esj4nPNTQnSA5s"
+        "versionLogicalId": "AuthorizeDashrequestLambdaVersionBtJrevz6dLJva8LErL6fFlRAkS1xXAeGy034f6ssw"
       }
     },
     "resources": {
@@ -336,7 +381,7 @@
         ],
         "deploymentBucket": "hsl-dev-us-west-2-serverless",
         "artifact": "/Users/ukhanna/projects/dynamodb-to-elasticsearch/.serverless/dynamodb-to-elasticsearch.zip",
-        "artifactDirectoryName": "serverless/dynamodb-to-elasticsearch/dev/1631918314394-2021-09-17T22:38:34.394Z"
+        "artifactDirectoryName": "serverless/dynamodb-to-elasticsearch/dev/1632163904817-2021-09-20T18:51:44.817Z"
       },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
@@ -347,7 +392,7 @@
     "artifact": "/Users/ukhanna/projects/dynamodb-to-elasticsearch/.serverless/dynamodb-to-elasticsearch.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/dynamodb-to-elasticsearch/dev/1631918314394-2021-09-17T22:38:34.394Z",
+    "artifactDirectoryName": "serverless/dynamodb-to-elasticsearch/dev/1632163904817-2021-09-20T18:51:44.817Z",
     "artifact": "dynamodb-to-elasticsearch.zip"
   }
 }
