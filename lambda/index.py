@@ -4,6 +4,8 @@ import os
 import json
 import re
 import boto3
+from sentry_sdk import init, capture_exception
+from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
@@ -26,6 +28,8 @@ ES_DOCUMENT_ID_TEMPLATE = os.environ.get("ES_DOCUMENT_ID_TEMPLATE", "")
 # Force index refresh upon all actions for close to realtime reindexing
 # Use IAM Role for authentication
 # Properly unmarshal DynamoDB JSON types. Binary NOT tested.
+
+init(dsn="https://905bad4fc7e148cdb08ad3ab493093f0@o32711.ingest.sentry.io/76042", integrations=[AwsLambdaIntegration()])
 
 def lambda_handler(event, context):
     assert False
