@@ -94,7 +94,7 @@ package:
   include:
     - "**"
     - ./lambda/index.py
-
+    - ./lambda/settings.py
 functions:
   authorize-request:
     name: ${self:service}-${self:provider.stage}
