@@ -4,7 +4,7 @@ import os
 import json
 import re
 import boto3
-import settings
+from settings import AppSettings
 from sentry_sdk import init, capture_exception
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 from elasticsearch import Elasticsearch, RequestsHttpConnection
