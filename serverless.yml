@@ -8,7 +8,7 @@ plugins:
   - serverless-package-python-functions
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.9
   stage: ${opt:stage, 'dev'}
   region: us-west-2
   deploymentBucket: ${self:custom.deploymentBucketVariable.${self:provider.stage}}
@@ -30,8 +30,6 @@ custom:
     globalRequirements:
       - ./requirements.txt
     cleanup: true
-  pythonRequirements:
-    pythonBin: python3
   sentry:
     dsn: ${self:custom.sentry_dsns.${self:provider.stage}}
   sentry_dsns:
@@ -89,12 +87,13 @@ resources:
 
 
 package:
+  individually: true
   exclude:
     - node_modules/**
     - venv/**
   include:
     - "**"
-
+    - ./lambda/index.py
 
 functions:
   authorize-request:
@@ -110,10 +109,10 @@ functions:
     vpc: ${self:custom.vpc.${self:provider.stage}}
     events:
       - stream:
-         arn: arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889
-         batchsize: 100
-         enabled: true
-         startingPosition: TRIM_HORIZON
-         parallelizationFactor: 1
-         maximumRecordAgeInSeconds: 60
-         bisectBatchOnFunctionError: false
+          arn: arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889
+          batchsize: 100
+          enabled: true
+          startingPosition: TRIM_HORIZON
+          parallelizationFactor: 1
+          maximumRecordAgeInSeconds: 60
+          bisectBatchOnFunctionError: false
