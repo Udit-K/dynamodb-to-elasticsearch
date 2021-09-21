@@ -4,6 +4,8 @@ plugins:
   - serverless-attach-managed-policy
   - serverless-python-requirements
   - serverless-hooks
+  - serverless-sentry
+  - serverless-package-python-functions
 provider:
   name: aws
   runtime: python3.6
@@ -22,6 +24,14 @@ provider:
     SENTRY_ENVIRONMENT: ${opt:stage, self:provider.stage}
 
 custom:
+  pkgPyFuncs: 
+    buildDir: _build
+    requirementsFile: 'requirements.txt'
+    globalRequirements:
+      - ./requirements.txt
+    cleanup: true
+  pythonRequirements:
+    pythonBin: python3
   sentry:
     dsn: ${self:custom.sentry_dsns.${self:provider.stage}}
   sentry_dsns:
@@ -90,11 +100,13 @@ functions:
   authorize-request:
     name: ${self:service}-${self:provider.stage}
     description: authorize API request
-    handler: handler.handler
+    handler: index.lambda_handler
+    package:
+      include:
+        - lambda
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/dynamodb-to-elasticsearch-dev.zip
     memorySize: 4096
     timeout: 900
-    # environment:
-    #   DYNAMODB_TO_ELASTICSEARCH_HOSTNAME: ${self:custom.dynamodb-to-elasticsearch.hostname.${self:provider.stage}}
     vpc: ${self:custom.vpc.${self:provider.stage}}
     events:
       - stream:
