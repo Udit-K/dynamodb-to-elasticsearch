@@ -32,50 +32,25 @@ custom:
     dev: hsl-dev-us-west-2-serverless
     staging: hsl-prod-us-west-2-serverless
     prod: hsl-prod-us-west-2-serverless
-  vpc:
+  subnet_ids:
     dev:
-      securityGroupIds:
-        - sg-07b1952c3b13092fa
-        - sg-0616e9d182ee488f3
-        - sg-0236ab7b2e3453700
-      subnetIds:
-        - subnet-afd4f8e6
-        - subnet-41392c26
-        - subnet-71dc742a
-    staging:
-      securityGroupIds:
-        sg-064c80d705439e0cb
-      subnetIds:
-        - subnet-e095b5a6
-        - subnet-31a12b59
-        - subnet-86e7f8ee
+      - subnet-afd4f8e6
+      - subnet-41392c26
+      - subnet-71dc742a
     prod:
+      - subnet-31a12b59
+      - subnet-86e7f8ee
+      - subnet-e095b5a6
+  dev_sg:
+    securityGroupIds:
+      - sg-4b39f331
+    subnetIds: ${self:custom.subnet_ids.dev}
+  activities_sg:
+    dev: ${self:custom.dev_sg}
+    prod: 
       securityGroupIds:
-        sg-0af9af9a2dcea0279
-      subnetIds:
-        - subnet-e095b5a6
-        - subnet-31a12b59
-        - subnet-86e7f8ee
-
-resources:
-  Resources:
-    IamRoleLambdaExecution:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument: # OVERWRITE assume role policy, rest is populated by serverless
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-                  - apigateway.amazonaws.com
-              Action: sts:AssumeRole
-        ManagedPolicyArns:
-          - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
-          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-          - arn:aws:iam::aws:policy/AWSLambda_FullAccess
-          
+        - sg-cfac19aa
+      subnetIds: ${self:custom.subnet_ids.prod}
 
 package:
   individually: true
@@ -86,6 +61,7 @@ package:
     - "**"
     - index.py
     - settings.py
+
 functions:
   authorize-request:
     name: ${self:service}-${self:provider.stage}
@@ -93,7 +69,7 @@ functions:
     handler: index.lambda_handler
     memorySize: 4096
     timeout: 900
-    vpc: ${self:custom.vpc.${self:provider.stage}}
+    vpc: ${self:custom.activities_sg.${self:provider.stage}}
     events:
       - stream:
           arn: arn:aws:dynamodb:us-west-2:590762009186:table/pnw-dev-helm-group-search/stream/2020-11-18T19:53:11.889

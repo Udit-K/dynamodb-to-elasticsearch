@@ -30,7 +30,7 @@ ES_DOCUMENT_ID_TEMPLATE = os.environ.get("ES_DOCUMENT_ID_TEMPLATE", "")
 # Use IAM Role for authentication
 # Properly unmarshal DynamoDB JSON types. Binary NOT tested.
 settings = AppSettings()
-init(dsn=settings.SENTRY_DSN, integrations=[AwsLambdaIntegration()])
+init(dsn=settings.SENTRY_DSN, debug=True, integrations=[AwsLambdaIntegration()])
 
 
 def lambda_handler(event, context):
