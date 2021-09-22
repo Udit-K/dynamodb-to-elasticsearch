@@ -29,11 +29,15 @@ ES_DOCUMENT_ID_TEMPLATE = os.environ.get("ES_DOCUMENT_ID_TEMPLATE", "")
 # Force index refresh upon all actions for close to realtime reindexing
 # Use IAM Role for authentication
 # Properly unmarshal DynamoDB JSON types. Binary NOT tested.
-
+settings = AppSettings()
 init(dsn=settings.SENTRY_DSN, integrations=[AwsLambdaIntegration()])
 
 def lambda_handler(event, context):
-    assert False
+    try:
+        assert settings.SENTRY_DSN == "not_correct"
+    except Exception as e:
+        capture_exception(e)
+        raise
     session = boto3.session.Session()
     credentials = session.get_credentials()
 
@@ -73,6 +77,7 @@ def lambda_handler(event, context):
             print(json.dumps(record))
             print("Error:")
             print(e)
+            capture_exception(e)
             continue
 
 # Process MODIFY events
