@@ -1,17 +1,14 @@
 service: dynamodb-to-elasticsearch
 
 plugins:
-  - serverless-attach-managed-policy
   - serverless-python-requirements
   - serverless-hooks
-  - serverless-sentry
 provider:
   name: aws
   runtime: python3.9
   stage: ${opt:stage, 'dev'}
   region: us-west-2
   deploymentBucket: ${self:custom.deploymentBucketVariable.${self:provider.stage}}
-
   tags:
     EngTeam: Platform-Integration
     Environment: ${self:provider.stage}
@@ -23,6 +20,9 @@ provider:
     SENTRY_ENVIRONMENT: ${opt:stage, self:provider.stage}
 
 custom:
+  aws_account:
+    dev: 590762009186
+    prod: 302137437361
   sentry:
     dsn: ${self:custom.sentry_dsns.${self:provider.stage}}
   sentry_dsns:

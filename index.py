@@ -5,7 +5,7 @@ import json
 import re
 import boto3
 from settings import AppSettings
-from sentry_sdk import init, capture_exception
+from sentry_sdk import init, capture_exception, capture_message
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -34,6 +34,7 @@ init(dsn=settings.SENTRY_DSN, debug=True, integrations=[AwsLambdaIntegration()])
 
 
 def lambda_handler(event, context):
+    capture_message("test")
     try:
         assert settings.SENTRY_DSN == "not_correct"
     except Exception as e:
