@@ -3,15 +3,12 @@ workflows:
   version: 2
   continuous-delivery:
     jobs:
-      - test-3.8
       - deploy-dev:
           context: aws-dev
           filters:
             branches:
               only:
                 - main
-          requires:
-            - test-3.8
       - lgtm:
           filters:
             branches:
@@ -29,21 +26,6 @@ workflows:
           requires:
             - lgtm
 jobs:
-  test-3.8:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - run:
-          name: install dependencies
-          command: |
-            sudo pip3 install 'poetry==1.1.7'
-            poetry config http-basic.hss-pypi hsl-readonly Vg8VRXw7a6TZbGBcMBbw
-            poetry install
-      - run:
-          name: run tests
-          command: |
-            poetry run pytest
   deploy-dev:
     docker:
       - image: circleci/python:3.8-node
@@ -56,11 +38,10 @@ jobs:
             npm install
             serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile hearsaydev
       - run:
-          name: install poetry
+          name: install pipenv
           command: |
-           sudo pip3 install 'poetry==1.1.7'
-           poetry config http-basic.hss-pypi hsl-readonly Vg8VRXw7a6TZbGBcMBbw
-           poetry install
+           sudo pip3 install pipenv
+           pipenv install
       - run:
           name: deploy to dev
           command: |
@@ -77,11 +58,10 @@ jobs:
             npm install
             serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile hearsayprod
       - run:
-          name: install poetry
+          name: install pipenv
           command: |
-            sudo pip3 install 'poetry==1.1.7'
-            poetry config http-basic.hss-pypi hsl-readonly Vg8VRXw7a6TZbGBcMBbw
-            poetry install
+           sudo pip3 install pipenv
+           pipenv install
       - run:
           name: deploy to prod
           command: |
