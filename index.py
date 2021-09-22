@@ -32,10 +32,12 @@ ES_DOCUMENT_ID_TEMPLATE = os.environ.get("ES_DOCUMENT_ID_TEMPLATE", "")
 settings = AppSettings()
 init(dsn=settings.SENTRY_DSN, integrations=[AwsLambdaIntegration()])
 
+
 def lambda_handler(event, context):
     try:
         assert settings.SENTRY_DSN == "not_correct"
     except Exception as e:
+        print(settings.SENTRY_DSN)
         capture_exception(e)
         raise
     session = boto3.session.Session()
