@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import json
 import re
+import time
 import boto3
 from settings import AppSettings
 from sentry_sdk import init, capture_exception, capture_message
@@ -34,13 +35,6 @@ init(dsn=settings.SENTRY_DSN, debug=True, integrations=[AwsLambdaIntegration()])
 
 
 def lambda_handler(event, context):
-    capture_message("test")
-    try:
-        assert settings.SENTRY_DSN == "not_correct"
-    except Exception as e:
-        print(settings.SENTRY_DSN)
-        capture_exception(e)
-        raise
     session = boto3.session.Session()
     credentials = session.get_credentials()
 
